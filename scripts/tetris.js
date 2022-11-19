@@ -1,3 +1,7 @@
+
+//for (let i = 0; i < ; i++){
+//
+//}
 // tetris.js
               
 const canvas = document.getElementById('canvas');
@@ -95,6 +99,51 @@ const Start = () =>{
     draw();
 }
 // occupiedPositions
+
+const updateActiveFigurePosition = () =>{
+    let canMoveThisFigure = true;
+
+    for (let i = 0; i < activeFigure.quads.length; i++){
+        const quad = activeFigure.quads[i];
+        //if (!checkIfEmpty(quad.position)){
+        if (!checkIfEmpty({xPos: quad.position.xPos, yPos: quad.position.yPos + 1})){
+            // can't move down
+            canMoveThisFigure = false;
+        }
+    }
+    if (canMoveThisFigure){
+        // move figure down
+        activeFigure.position = {xPos: activeFigure.position.xPos, yPos: activeFigure.position.yPos + 1}
+        // move quads down
+        for (let i = 0; i < activeFigure.quads.length; i++){
+            quad = activeFigure.quads[i]
+            quad.position = {xPos: quad.position.xPos, yPos: quad.position.yPos + 1 }
+        }
+    }else{
+        //if(!checkIfEmpty({xPos: quad.position.xPos, yPos: quad.position.yPos + 1})){
+            occupiedQuadsPositions.push(quad.position);
+        //}
+            console.log(occupiedQuadsPositions);
+            createNewFigure();
+    }
+}
+
+const checkIfEmpty = (position) =>{
+    //if (occupiedQuadsPositions.some(el => (el.xPos == position.xPos && el.yPos == position.yPos+1))) {
+    //    return false
+    //}
+    //return true
+    for (let i = 0; i < occupiedQuadsPositions.length; i++){
+        if(occupiedQuadsPositions[i].xPos == position.xPos && occupiedQuadsPositions[i].yPos == position.yPos){
+            console.log('returning false')
+            console.log(position)
+            return false
+        }
+    }
+    console.log('returning true')
+    return true
+}
+
 const updatePositions = () =>{
     // TODO: add next quad position to occupiedQuadPositions and remove current position from that array
     // for every figure on scene
@@ -160,13 +209,16 @@ const countQuadsInFigure = (schema) => {
 
 
 const draw = () =>{
-    clearCanvas();
-    updatePositions();
-    for(let i = 0; i < figures.length; i++){
-        // drawFigure(figuresOptions[0], figures[i].position)
-        drawFigure(figures[i].schema, figures[i].position)
-    }
-    setTimeout(draw, newFrameDelay);
+    if(canCreate){
+        clearCanvas();
+        //updatePositions();
+        updateActiveFigurePosition();
+        for(let i = 0; i < figures.length; i++){
+            // drawFigure(figuresOptions[0], figures[i].position)
+            drawFigure(figures[i].schema, figures[i].position)
+        }
+        setTimeout(draw, newFrameDelay);
+    } 
 }
 
 const clearCanvas = () =>{
@@ -246,7 +298,6 @@ const gameOver = () =>{
     fillStyle = "white"; 
     ctx.font = '48px serif';
     ctx.fillText('Hello world', 10, 50);
-    console.log(occupiedQuadsPositions)
 }
 
 class Figure{
@@ -347,8 +398,20 @@ const moveFigure = (code) =>{
 }
 
 const moveHorizontally = (direction) =>{
-    if (direction == "left") activeFigure.position.xPos -= 1;
-    if (direction == "right") activeFigure.position.xPos += 1;
+    if (direction == "left"){
+        activeFigure.position.xPos -= 1;
+        for(let i = 0; i < activeFigure.quads.length; i++){
+            let quad = activeFigure.quads[i];
+            quad.position = {xPos: quad.position.xPos - 1, yPos: quad.position.yPos}
+        }
+    } 
+    if (direction == "right"){
+        activeFigure.position.xPos += 1;
+        for(let i = 0; i < activeFigure.quads.length; i++){
+            let quad = activeFigure.quads[i];
+            quad.position = {xPos: quad.position.xPos + 1, yPos: quad.position.yPos}
+        }
+    } 
     clearCanvas();
     for(let i = 0; i < figures.length; i++){
         drawFigure(figures[i].schema, figures[i].position)
