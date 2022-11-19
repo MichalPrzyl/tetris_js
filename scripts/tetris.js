@@ -1,5 +1,5 @@
 // tetris.js
-
+              
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 
@@ -16,6 +16,17 @@ const xOffset = 7;
 const yOffset = 10;
 const gridScale = 30;
 const gridWidth = 2;
+
+
+// figures
+const figures = [
+    [
+        [0,1,0],
+        [0,1,0],
+        [0,1,0],
+    ]
+]
+
 const Start = () =>{
     draw();
 }
@@ -27,6 +38,9 @@ const update = () =>{
 const draw = () =>{
     clearCanvas();
     update();
+    // figurePos ma miec x i y
+    let figurePos = {x: 5, y: 4}
+    drawFigure(figures[0], figurePos)
     setTimeout(draw, newFrameDelay);
 }
 
@@ -40,9 +54,14 @@ const clearCanvas = () =>{
             ctx.fillStyle = gridColor;
             ctx.strokeStyle = "black"; // this isn't working. fix that.
             //ctx.fillRect(i* (canvasWidth/xResolution), j * (canvasHeight/yResolution), gridScale, gridScale);
-            ctx.fillRect(i*gridScale, j * gridScale, gridScale - gridWidth, gridScale -gridWidth);
+            ctx.fillRect(i*gridScale, j * gridScale, gridScale - gridWidth, gridScale - gridWidth);
         }
     }
+}
+const figureColor = "red";
+const drawFigure = (figure, figurePos) => {
+    ctx.fillStyle = figureColor;
+    ctx.fillRect(figurePos.x * gridScale, figurePos.y * gridScale, gridScale - gridWidth, gridScale - gridWidth)
 }
 
 window.onload = Start();
