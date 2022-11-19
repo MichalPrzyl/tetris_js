@@ -5,7 +5,7 @@ const ctx = canvas.getContext('2d');
 
 const canvasWidth = 400;
 const canvasHeight = 600;
-const newFrameDelay = 1000; // in miliseconds
+const newFrameDelay = 100; // in miliseconds
 
 // grid consts
 const xResolution = 10;
@@ -40,7 +40,8 @@ let occupiedPositions = [];
 let occupiedQuadsPositions = [];
 let activeFigure;
 let started = false;
-
+let createdCounter = 0;
+let canCreate = true;
 for (let i = 1; i < 11; i++){
     occupiedQuadsPositions.push({xPos: i, yPos: 20});
 }
@@ -52,17 +53,31 @@ for (let i = 1; i < 11; i++){
 }
 
 const createNewFigure = () => {
-    const figure = new Figure(
-        {xPos:5, yPos: 10},
-        [
-            [1,1,1],
-            [0,0,0],
-            [0,0,0]
-        ]
-    );
+    if (createdCounter == 2){
+        gameOver();
+    }
+    if (canCreate){
+        const spawnPosition = {xPos:5, yPos: 10}
+            
+        // if can't spawn anymore display text "Game Over"
+        //const waurnek = occupiedQuadsPositions.some(el => (el.xPos == spawnPosition.xPos && el.yPos == spawnPosition.yPos))
+        //if (warunek){
+        //    ctx.font = '48px serif';
+        //    ctx.fillText('Hello world', 10, 50);
+        //}
+        const figure = new Figure(
+            spawnPosition,
+            [
+                [1,1,1],
+                [0,0,0],
+                [0,0,0]
+            ]
+        );
 
-    figures.push(figure);
-    activeFigure = figure;
+        figures.push(figure);
+        activeFigure = figure;
+        createdCounter += 1;
+    } 
 }
 
 const Start = () =>{
@@ -91,15 +106,20 @@ const updatePositions = () =>{
             const quad = figures[i].quads[j]
             const checkOccupiedPosition = {xPos: quad.position.xPos, yPos: quad.position.yPos + 1}
 
-            if (occupiedQuadsPositions.some(el => (el.xPos == checkOccupiedPosition.xPos && el.yPos == checkOccupiedPosition.yPos))) 
-            {
-                canMoveThisFigure = false;
-                if(figures[i] == activeFigure){
-                    createNewFigure();
-                }
+            //if (occupiedQuadsPositions.some(el => (el.xPos == checkOccupiedPosition.xPos && el.yPos == checkOccupiedPosition.yPos))) 
+            for (let op = 0; op < occupiedQuadsPositions.length; op++){
+               if (occupiedQuadsPositions[op].xPos == figures[i].quads[j].position.xPos &&
+                   occupiedQuadsPositions[op].yPos == figures[i].quads[j].position.yPos){
+                    canMoveThisFigure = false;
+                    if(figures[i] == activeFigure){
+                        createNewFigure();
+                    }
+               }
             }
-            else{canMoveThisFigure = true;}
-        }
+        } 
+           
+            //else{canMoveThisFigure = true;}
+        //}
 
         // check every quad in figure
         if (canMoveThisFigure){
@@ -118,6 +138,10 @@ const updatePositions = () =>{
         }
         else{
             for (let q = 0; q < figures[i].quads.length; q++){
+                // if the squad coordinates are already in occupiedQuadsPositions array - do nothing
+                if (occupiedQuadsPositions.some(el => (el.xPos == figures[i].quads[q].position.xPos && el.yPos == figures[i].quads[q].position.yPos))) {
+                    continue;
+                }
                 occupiedQuadsPositions.push(figures[i].quads[q].position);
             }
         }
@@ -215,6 +239,16 @@ const drawFigure = (figure, figurePos) => {
     }
 }
 
+const gameOver = () =>{
+    canCreate = false;
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    fillStyle = "white"; 
+    ctx.font = '48px serif';
+    ctx.fillText('Hello world', 10, 50);
+    console.log(occupiedQuadsPositions)
+}
+
 class Figure{
     constructor(position, schema){
         this.position = position;
@@ -291,8 +325,33 @@ class Figure{
 class Quad{
     constructor(position){
         this.position = position;
-        occupiedQuadsPositions.push(position)
     }
 }
 
 window.onload = Start();
+
+
+document.addEventListener('keydown', (event) =>{
+    var name = event.key;
+    var code = event.code;
+    moveFigure(code);
+})
+
+const moveFigure = (code) =>{
+    if (code =="ArrowLeft"){
+        moveHorizontally("left");
+    }
+    if (code =="ArrowRight"){
+        moveHorizontally("right");
+    }
+}
+
+const moveHorizontally = (direction) =>{
+    if (direction == "left") activeFigure.position.xPos -= 1;
+    if (direction == "right") activeFigure.position.xPos += 1;
+    clearCanvas();
+    for(let i = 0; i < figures.length; i++){
+        drawFigure(figures[i].schema, figures[i].position)
+    }
+    
+}
