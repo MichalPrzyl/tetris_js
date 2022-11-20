@@ -1,4 +1,7 @@
 // tetris.js
+globals = {
+    debug: true,
+}
 
 // figures
 const figuresOptions = [
@@ -120,21 +123,7 @@ const figuresOptions = [
    
 ]
 
-const rotateFigure = () =>{
 
-    // TODO: remove all quad from occupied quad position
-    for (let i = 0; i < activeFigure.quads.length; i++){
-        quad = activeFigure.quads[i];
-        const index = occupiedQuadsPositions.indexOf(quad.position)
-        if (index > -1){occupiedQuadsPositions.splice(index, 1)}
-    }
-    ereaseFigure(activeFigure);
-    // if index is 4 reset it to 0
-    if (activeFigure.actualSchemaPositionIndex == 4 ){activeFigure.actualSchemaPositionIndex = 0 }
-    const figure = new Figure(activeFigure.position, activeFigure.schema, activeFigure.actualSchemaPositionIndex + 1);
-    activeFigure = figure;
-    figures.push(figure);
-}
 
 
 const canvas = document.getElementById('canvas');
@@ -168,17 +157,20 @@ let figures = []
 let quads = []
 
 // globals
-let occupiedPositions = [];
-let occupiedQuadsPositions = [];
 let activeFigure;
 let started = false;
 let createdCounter = 0;
 let canCreate = true;
 let endGameAfterLevel = 99999;
 
-// bottom border (you can't go below that)
-for (let i = 1; i < 11; i++){
-    occupiedQuadsPositions.push({xPos: i, yPos: 20});
+const rotateFigure = () =>{
+    ereaseFigure(activeFigure);
+    // if index is 4 reset it to 0
+    if (activeFigure.actualSchemaPositionIndex == 4 ){activeFigure.actualSchemaPositionIndex = 0 }
+    const figure = new Figure(activeFigure.position, activeFigure.schema, activeFigure.actualSchemaPositionIndex + 1);
+
+    activeFigure = figure;
+    refreshScene();
 }
 
 const spawnTesting = () =>{
@@ -192,12 +184,6 @@ const spawnTesting = () =>{
     testingFigures.push(fig1);
     testingFigures.push(fig2);
     testingFigures.push(fig3);
-    for (let i = 0; i < testingFigures.length; i++){
-        for (let j = 0; j < testingFigures[i].quads.length; j++){
-            quad = testingFigures[i].quads[j];
-            occupiedQuadsPositions.push(quad.position);
-        }
-    }
 }
 
 
@@ -216,20 +202,31 @@ const createNewFigure = (schemaPositionIndex=1) => {
         createdCounter += 1;
     } 
 }
+const spawnBottomBorderQuads = () => {
+// bottom border (you can't go below that)
+    for (let i = 1; i < 11; i++){
+        const q = new Quad({xPos: i, yPos: 20})
+    }   
+}
 
 const Start = () =>{
-    const item = figuresOptions[Math.floor(Math.random()*figuresOptions.length)];
-    spawnTesting();
-    // const item = figuresOptions[0]
-    // item is t-shape
+    // testing
+    if(globals["debug"]){
+        spawnTesting();
+    }
 
+    // bottom border
+    spawnBottomBorderQuads();
+
+    const item = figuresOptions[Math.floor(Math.random()*figuresOptions.length)];
+    
+    // first figure
     const figure = new Figure(
         {xPos:5, yPos: 13},
         item,
         1
     );
 
-    figures.push(figure);
     activeFigure = figure;
     draw();
 }
@@ -238,120 +235,80 @@ const refreshScene = () =>{
     clearCanvas();
     drawFigures();
 }
-const deleteQuadFromOccupiedQuadsPositions = (quadPosition) => {
-    const occupiedQuadPositionIndex = occupiedQuadsPositions.indexOf(occupiedQuadsPositions.find(el => (el.xPos == quadPosition.xPos && el.yPos == quadPosition.yPos)))
-    if (occupiedQuadPositionIndex > -1){
-        console.log("deleting from occupied")
-        occupiedQuadsPositions.splice(occupiedQuadPositionIndex, 1)
-    }
-}
 
 const deleteRow = (row) =>{
-    console.log('delete row')
-    const toDelete = occupiedQuadsPositions.filter(el => (el.yPos == row))
+    const toDelete = quads.filter(el => (el.position.yPos == row))
     for (let i = 0; i< toDelete.length; i++){
         deleteQuad(toDelete[i]);
     }
     // move all quads one unit down
-    
-    quads.forEach(el => {
-        el.position = {xPos: el.position.xPos, yPos: el.position.yPos + 1}
-    })
-    for (let i = 0; i < occupiedQuadsPositions.length; i++){
-        if (occupiedQuadsPositions[i].yPos != 20){
-            occupiedQuadsPositions[i] = {xPos: occupiedQuadsPositions[i].xPos, yPos: occupiedQuadsPositions[i].yPos + 1}
-        }
-    }
-    // occupiedQuadsPositions.forEach(el => {
-    //     el = {xPos: el.xPos, yPos: el.yPos + 1}
-    // })
+    moveQuadsDown(row);
 
     refreshScene();
-
-        // find figure with quad
-        // remove that quad from figure quads array
-        // remove from globals
-    //     quadToRemove = toDelete[i]
-    //     const figureWithThatQuad = figures.filter(el => (el.quads.some(quad => (quad.position.xPos == quadToRemove.xPos && quad.position.yPos == quadToRemove.yPos))))[0]
-    //     const x = figureWithThatQuad.quads.find(el => (el.position == quadToRemove))
-        
-    //     const quadIndex = figureWithThatQuad.quads.indexOf({xPos: x.xPos, x: quadToRemove.yPos})
-    //         if (quadIndex > -1){
-    //             figureWithThatQuad.quads.splice(index, 1)
-    //         }
-        
-    //     //globals 
-    //     const index = quads.indexOf({xPos: quadToRemove.xPos, yPos: quadToRemove.yPos})
-    //         if (index > -1){
-    //             quads.splice(index, 1)
-    //         }
-    //         deleteQuad(quadToRemove);
-    // }
-
-    // occupiedQuadsPositions = newOccupiedQuadPositions;
 }
 
-const deleteQuad = (quadPosition) => {
-    // delete from figure
-    const figure = quads.find(el => (el.position.xPos == quadPosition.xPos && el.position.yPos == quadPosition.yPos)).figure
-    const figureQuads = figure.quads
-    const quad = figureQuads.find(el => (el.position.xPos == quadPosition.xPos && el.position.yPos == quadPosition.yPos))
-    const quadIndex = figureQuads.indexOf(quad)
-
-    if (quadIndex > -1){
-        figureQuads.splice(quadIndex, 1)
+const moveQuadsDown = (row) => {
+    // move all quads above the row
+    const quadsToMove = quads.filter(el => el.position.yPos <= row)
+    for (let i = 0; i < quadsToMove.length; i++){
+        quad = quads.find(el => el.position == quadsToMove[i].position);
+        console.log(quad)
+        quad.position = {...quad.position, yPos: quad.position.yPos + 1};
     }
+}
 
-
-    //delete from occupiedQuadsPositions
-    console.log("quadPosition", quadPosition);
-    deleteQuadFromOccupiedQuadsPositions(quadPosition);
-
+const deleteQuad = (quad) => {
     // delete from globals
-    const index = quads.indexOf(quads.find(el => (el.position.xPos == quadPosition.xPos && el.position.yPos == quadPosition.yPos)))
-    if (index > -1){
-        quads.splice(index, 1)
-    }
-
+    deleteElementFromArray(quad, quads);
     refreshScene();
 }
 
 const checkIfScore = () => {
     // for every row check if it contains 10 elements
     for (let i = 0; i < 20; i++){
-        const quads = occupiedQuadsPositions.filter(el => (el.yPos == i))
-        if (quads.length == 10) deleteRow(i);
+        const quadsInRow = quads.filter(el => (el.position.yPos == i))
+        if (quadsInRow.length == 10) deleteRow(i);
     }
 }
 
-const updateActiveFigurePosition = () =>{
+const moveActiveFigureDown = () =>{
     let canMoveThisFigure = true;
-    for (let i = 0; i < activeFigure.quads.length; i++){
-        const quad = activeFigure.quads[i];
-        if (!checkIfEmpty({xPos: quad.position.xPos, yPos: quad.position.yPos + 1})){
+    let quadsToMoveDown = quads.filter(el => el.figure == activeFigure);
+  
+    for (let i = 0; i < quadsToMoveDown.length; i++){
+        const quad = quadsToMoveDown[i];
+        const positionToCheck = {...quad.position, yPos: quad.position.yPos + 1}
+
+        if (!checkIfEmpty(positionToCheck)){
             // can't move down
             canMoveThisFigure = false;
         }
-    } // end for
-
-
-
+    } 
     if (canMoveThisFigure){
         // move figure down
-        activeFigure.position = {xPos: activeFigure.position.xPos, yPos: activeFigure.position.yPos + 1}
+        activeFigure.position = {...activeFigure.position, yPos: activeFigure.position.yPos + 1}
         // move quads down
-        for (let i = 0; i < activeFigure.quads.length; i++){
-            let quad2 = activeFigure.quads[i]
-            quad2.position = {xPos: quad2.position.xPos, yPos: quad2.position.yPos + 1}
+        
+        for (let i = 0; i < quadsToMoveDown.length; i++){
+            const quad = quadsToMoveDown[i]
+            quad.position = {xPos: quad.position.xPos, yPos: quad.position.yPos + 1}
         }
     }else{
-        for (let i = 0; i < activeFigure.quads.length; i++){
-            let quad2 = activeFigure.quads[i]
-            occupiedQuadsPositions.push(quad2.position);
-        }
         createNewFigure();
     }
 }
+
+const checkIfEmpty = (position) =>{
+    for (let i = 0; i < quads.length; i++){
+        if(quads[i].position.xPos == position.xPos && 
+            quads[i].position.yPos == position.yPos &&
+            (quads[i].figure != activeFigure || quads[i].figure == null)){
+                return false
+        }
+    }
+    return true
+}
+
 
 const drawFigures = () =>{
     for(let i = 0; i < figures.length; i++){
@@ -359,84 +316,11 @@ const drawFigures = () =>{
     }
 }
 
-const checkIfEmpty = (position) =>{
-    for (let i = 0; i < occupiedQuadsPositions.length; i++){
-        if(occupiedQuadsPositions[i].xPos == position.xPos && occupiedQuadsPositions[i].yPos == position.yPos){
-            return false
-        }
-    }
-    return true
-}
-
-const updatePositions = () =>{
-    // TODO: add next quad position to occupiedQuadPositions and remove current position from that array
-    // for every figure on scene
-    for (let i = 0; i < figures.length; i++){
-        let canMoveThisFigure = true;
-
-        // for every quad in figure
-        for(let j = 0; j < figures[i].quads.length; j++){
-            const quad = figures[i].quads[j]
-            const checkOccupiedPosition = {xPos: quad.position.xPos, yPos: quad.position.yPos + 1}
-
-            //if (occupiedQuadsPositions.some(el => (el.xPos == checkOccupiedPosition.xPos && el.yPos == checkOccupiedPosition.yPos))) 
-            for (let op = 0; op < occupiedQuadsPositions.length; op++){
-               if (occupiedQuadsPositions[op].xPos == figures[i].quads[j].position.xPos &&
-                   occupiedQuadsPositions[op].yPos == figures[i].quads[j].position.yPos){
-                    canMoveThisFigure = false;
-                    if(figures[i] == activeFigure){
-                        createNewFigure();
-                    }
-               }
-            }
-        } 
-           
-            //else{canMoveThisFigure = true;}
-        //}
-
-        // check every quad in figure
-        if (canMoveThisFigure){
-            figures[i].position = {xPos: figures[i].position.xPos, yPos: figures[i].position.yPos + 1}
-
-            for (let q = 0; q < figures[i].quads.length; q++){
-                const quad = figures[i].quads[q]
-
-                const index = occupiedQuadsPositions.indexOf({xPos:quad.position.xPos, yPos:quad.position.yPos})
-                if (index > -1){
-                    occupiedQuadsPositions.splice(index, 1)
-                }
-
-                quad.position = {xPos: quad.position.xPos, yPos: quad.position.yPos + 1};
-            }
-        }
-        else{
-            for (let q = 0; q < figures[i].quads.length; q++){
-                // if the squad coordinates are already in occupiedQuadsPositions array - do nothing
-                if (occupiedQuadsPositions.some(el => (el.xPos == figures[i].quads[q].position.xPos && el.yPos == figures[i].quads[q].position.yPos))) {
-                    continue;
-                }
-                occupiedQuadsPositions.push(figures[i].quads[q].position);
-            }
-        }
-    }
-}
-
-// const countQuadsInFigure = (schema) => {
-
-//     let count = 0;
-//     for (let i = 0; i < schema.length; i++){
-//         countInRow = schema[i].filter(x => x==1).length
-//         count += countInRow;
-//     }
-//     return countInRow;
-// }
-
 
 const draw = () =>{
     if(canCreate){
         clearCanvas();
-        //updatePositions();
-        updateActiveFigurePosition();
+        moveActiveFigureDown();
         checkIfScore();
         drawFigures();
         setTimeout(draw, newFrameDelay);
@@ -462,21 +346,27 @@ const drawGrid = () => {
 
 const drawFigure = (figure) => {
     ctx.fillStyle = figureColor;
-    for (let i = 0; i < figure.quads.length; i++){
-        drawQuad(figure.quads[i].position);
+    // find quads that belong to this figure
+    const figureQuads = quads.filter(el => el.figure == figure)
+    for (let i = 0; i < figureQuads.length; i++){
+        drawQuad(figureQuads[i].position);
     }
 }
 
+const deleteElementFromArray = (element, arr) => {
+    const index = arr.indexOf(element)
+    if (index > -1){arr.splice(index, 1)}
+}
+
 const ereaseFigure = (figure) => {
-    for (let i = 0; i < figure.quads.length; i++){
-        quad = figure.quads[i];
-        quad = null;
+    const figureQuads = quads.filter(el => el.figure == activeFigure)
+    // delete all quads from scene
+    for (let i = 0; i < figureQuads.length; i++){
+        quad = figureQuads[i];
+        deleteElementFromArray(quad, quads)
     }
-    delete figure;
-    figure.quads = [];
-    figure = null;
-    clearCanvas();
-    drawFigures();
+
+    deleteElementFromArray(figure, figures);
 }
 
 const drawQuad = (position) =>{
@@ -501,6 +391,7 @@ class Figure{
         this.quads = []
         this.actualSchemaPositionIndex = schemaPositionIndex;
         this.createQuads();
+        figures.push(this);
     }
 
     createQuads(){
@@ -509,58 +400,59 @@ class Figure{
         if (this.schema[this.actualSchemaPositionIndex][0][0] == 1){
             quadPos = {xPos: centerPoint.xPos - 1, yPos: centerPoint.yPos-1}
             const quad = new Quad(quadPos, this);
-            this.quads.push(quad);
+            // this.quads.push(quad);
         }
 
         if (this.schema[this.actualSchemaPositionIndex][0][1] == 1){
             quadPos = {xPos: centerPoint.xPos, yPos: centerPoint.yPos-1}
             const quad = new Quad(quadPos, this);
-            this.quads.push(quad);
+            // this.quads.push(quad);
         }
 
         if (this.schema[this.actualSchemaPositionIndex][0][2] == 1){
             quadPos = {xPos: centerPoint.xPos + 1, yPos: centerPoint.yPos-1}
             const quad = new Quad(quadPos, this);
-            this.quads.push(quad);
+            // this.quads.push(quad);
         }
 
         if (this.schema[this.actualSchemaPositionIndex][1][0] == 1){
             quadPos = {xPos: centerPoint.xPos - 1, yPos: centerPoint.yPos}
             const quad = new Quad(quadPos, this);
-            this.quads.push(quad);
+            // this.quads.push(quad);
         }
 
         if (this.schema[this.actualSchemaPositionIndex][1][1] == 1){
             quadPos = {xPos: centerPoint.xPos, yPos: centerPoint.yPos}
             const quad = new Quad(quadPos, this);
-            this.quads.push(quad);
+            // this.quads.push(quad);
         }
 
         if (this.schema[this.actualSchemaPositionIndex][1][2] == 1){
             quadPos = {xPos: centerPoint.xPos + 1, yPos: centerPoint.yPos}
             const quad = new Quad(quadPos, this);
-            this.quads.push(quad);
+            // this.quads.push(quad);
         }
 
         if (this.schema[this.actualSchemaPositionIndex][2][0] == 1){
             quadPos = {xPos: centerPoint.xPos - 1, yPos: centerPoint.yPos + 1}
             const quad = new Quad(quadPos, this);
-            this.quads.push(quad);
+            // this.quads.push(quad);
         }
 
         if (this.schema[this.actualSchemaPositionIndex][2][1] == 1){
             quadPos = {xPos: centerPoint.xPos, yPos: centerPoint.yPos + 1}
             const quad = new Quad(quadPos, this);
-            this.quads.push(quad);
+            // this.quads.push(quad);
         }
 
         if (this.schema[this.actualSchemaPositionIndex][2][2] == 1){
             quadPos = {xPos: centerPoint.xPos + 1, yPos: centerPoint.yPos + 1}
             const quad = new Quad(quadPos, this);
-            this.quads.push(quad);
+            // this.quads.push(quad);
         }
-        }
+        
     }
+}
 
 
 class Quad{
@@ -589,7 +481,7 @@ const fastMove = () =>{
     //     quad = activeFigure.quads[i];
     //     quad.position = {xPos: quad.position.xPos, yPos: quad.position.yPos + 1}
     // }
-    updateActiveFigurePosition();
+    moveActiveFigureDown();
     clearCanvas();
     drawFigures();
 }
@@ -605,21 +497,44 @@ const moveFigure = (code) =>{
 
 const moveHorizontally = (direction) =>{
     if (direction == "left"){
-        activeFigure.position.xPos -= 1;
-        for(let i = 0; i < activeFigure.quads.length; i++){
-            let quad = activeFigure.quads[i];
-            quad.position = {xPos: quad.position.xPos - 1, yPos: quad.position.yPos}
+        const xMovingDirection = -1
+        const activeFigureQuads = quads.filter(el => el.figure == activeFigure);
+        for(let i = 0; i < activeFigureQuads.length; i++){
+            quad = activeFigureQuads[i];
+            if(quad.position.xPos + xMovingDirection == -1) return;
+            if (!checkIfEmpty({...quad.position ,xPos: quad.position.xPos + xMovingDirection})){
+                return
+            }
+        }
+        
+        activeFigure.position.xPos += xMovingDirection;
+        // all figure quads
+        const figureQuads = quads.filter(el => el.figure == activeFigure);
+        for(let i = 0; i < figureQuads.length; i++){
+            let quad = figureQuads[i];
+            quad.position = {xPos: quad.position.xPos + xMovingDirection, yPos: quad.position.yPos}
         }
     } 
+
     if (direction == "right"){
-        activeFigure.position.xPos += 1;
-        for(let i = 0; i < activeFigure.quads.length; i++){
-            let quad = activeFigure.quads[i];
-            quad.position = {xPos: quad.position.xPos + 1, yPos: quad.position.yPos}
+        const xMovingDirection = 1
+        const activeFigureQuads = quads.filter(el => el.figure == activeFigure);
+        for(let i = 0; i < activeFigureQuads.length; i++){
+            quad = activeFigureQuads[i];
+            if(quad.position.xPos + xMovingDirection == 10) return;
+            if (!checkIfEmpty({...quad.position ,xPos: quad.position.xPos + xMovingDirection})){
+                return
+            }
+        }
+        activeFigure.position.xPos += xMovingDirection;
+        // all figure quads
+        const figureQuads = quads.filter(el => el.figure == activeFigure);
+        for(let i = 0; i < figureQuads.length; i++){
+            let quad = figureQuads[i];
+            quad.position = {xPos: quad.position.xPos + xMovingDirection, yPos: quad.position.yPos}
         }
     } 
-    clearCanvas();
-    // redraw all figures
-    drawFigures();
+
+    refreshScene();
 }
 
