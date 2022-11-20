@@ -1,9 +1,35 @@
-
-//for (let i = 0; i < ; i++){
-//
-//}
 // tetris.js
-import { figures } from './figures.js';
+
+
+
+// figures
+const figuresOptions = [
+    [
+        [1,1,1],
+        [0,1,0],
+        [0,0,0],
+    ],
+    [
+        [0,1,0],
+        [0,1,0],
+        [0,1,1],
+    ],
+    [
+        [0,1,0],
+        [0,1,1],
+        [0,0,1],
+    ],
+    [
+        [0,1,0],
+        [1,1,0],
+        [1,0,0],
+    ],
+    [
+        [1,0,0],
+        [1,0,0],
+        [1,0,0],
+    ],
+]
 
 
 const canvas = document.getElementById('canvas');
@@ -26,14 +52,6 @@ const backgroundColor = 'gray';
 const gridColor = "#bfd3f2";
 const figureColor = "red";
 
-// figures
-const figuresOptions = [
-    [
-        [1,1,1],
-        [0,1,0],
-        [0,0,0],
-    ]
-]
 
 let figureInitialPos = {x: 5, y: 1}
 let figurePos;
@@ -58,26 +76,16 @@ for (let i = 1; i < 11; i++){
 
 
 const createNewFigure = () => {
+    // stops game after n spawned figures - just for debugging
     if (createdCounter == endGameAfterLevel){
         gameOver();
     }
     if (canCreate){
         const spawnPosition = {xPos:5, yPos: 10}
             
-        // if can't spawn anymore display text "Game Over"
-        //const waurnek = occupiedQuadsPositions.some(el => (el.xPos == spawnPosition.xPos && el.yPos == spawnPosition.yPos))
-        //if (warunek){
-        //    ctx.font = '48px serif';
-        //    ctx.fillText('Hello world', 10, 50);
-        //}
+        let item = figuresOptions[Math.floor(Math.random()*figuresOptions.length)];
         const figure = new Figure(
-            spawnPosition,
-            [
-                [1,1,1],
-                [0,0,0],
-                [0,0,0]
-            ]
-        );
+            spawnPosition, item);
 
         figures.push(figure);
         activeFigure = figure;
@@ -212,7 +220,6 @@ const draw = () =>{
         //updatePositions();
         updateActiveFigurePosition();
         for(let i = 0; i < figures.length; i++){
-            // drawFigure(figuresOptions[0], figures[i].position)
             drawFigure(figures[i].schema, figures[i].position)
         }
         setTimeout(draw, newFrameDelay);
