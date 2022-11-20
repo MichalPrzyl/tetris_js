@@ -46,6 +46,8 @@ let activeFigure;
 let started = false;
 let createdCounter = 0;
 let canCreate = true;
+let endGameAfterLevel = 10;
+
 for (let i = 1; i < 11; i++){
     occupiedQuadsPositions.push({xPos: i, yPos: 20});
 }
@@ -57,7 +59,7 @@ for (let i = 1; i < 11; i++){
 }
 
 const createNewFigure = () => {
-    if (createdCounter == 2){
+    if (createdCounter == endGameAfterLevel){
         gameOver();
     }
     if (canCreate){
@@ -101,6 +103,7 @@ const Start = () =>{
 // occupiedPositions
 
 const updateActiveFigurePosition = () =>{
+
     let canMoveThisFigure = true;
 
     for (let i = 0; i < activeFigure.quads.length; i++){
@@ -110,37 +113,33 @@ const updateActiveFigurePosition = () =>{
             // can't move down
             canMoveThisFigure = false;
         }
-    }
+    } // end for
+
+
+
     if (canMoveThisFigure){
         // move figure down
         activeFigure.position = {xPos: activeFigure.position.xPos, yPos: activeFigure.position.yPos + 1}
         // move quads down
         for (let i = 0; i < activeFigure.quads.length; i++){
-            quad = activeFigure.quads[i]
-            quad.position = {xPos: quad.position.xPos, yPos: quad.position.yPos + 1 }
+            let quad2 = activeFigure.quads[i]
+            quad2.position = {xPos: quad2.position.xPos, yPos: quad2.position.yPos + 1 }
         }
     }else{
-        //if(!checkIfEmpty({xPos: quad.position.xPos, yPos: quad.position.yPos + 1})){
-            occupiedQuadsPositions.push(quad.position);
-        //}
-            console.log(occupiedQuadsPositions);
-            createNewFigure();
+        for (let i = 0; i < activeFigure.quads.length; i++){
+            let quad2 = activeFigure.quads[i]
+            occupiedQuadsPositions.push(quad2.position);
+        }
+        createNewFigure();
     }
 }
 
 const checkIfEmpty = (position) =>{
-    //if (occupiedQuadsPositions.some(el => (el.xPos == position.xPos && el.yPos == position.yPos+1))) {
-    //    return false
-    //}
-    //return true
     for (let i = 0; i < occupiedQuadsPositions.length; i++){
         if(occupiedQuadsPositions[i].xPos == position.xPos && occupiedQuadsPositions[i].yPos == position.yPos){
-            console.log('returning false')
-            console.log(position)
             return false
         }
     }
-    console.log('returning true')
     return true
 }
 
