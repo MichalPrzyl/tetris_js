@@ -3,7 +3,9 @@
 //
 //}
 // tetris.js
-              
+import { figures } from './figures.js';
+
+
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 
@@ -48,15 +50,12 @@ let createdCounter = 0;
 let canCreate = true;
 let endGameAfterLevel = 10;
 
+// bottom border (you can't go below that)
 for (let i = 1; i < 11; i++){
     occupiedQuadsPositions.push({xPos: i, yPos: 20});
 }
 
 
-// bottom border (you can't go below that)
-for (let i = 1; i < 11; i++){
-    //occupiedPositions.push({xPos: i, yPos: 21});
-}
 
 const createNewFigure = () => {
     if (createdCounter == endGameAfterLevel){
@@ -91,7 +90,7 @@ const Start = () =>{
         {xPos:5, yPos: 10},
         [
             [1,1,1],
-            [0,0,0],
+            [0,1,0],
             [0,0,0]
         ]
     );
