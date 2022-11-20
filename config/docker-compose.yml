@@ -6,6 +6,7 @@ services:
 
     volumes:
       - ../:/tetris
+      - /tetris/node_modules/
 
     command: serve tetris
 
