@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  frontend:
+    build: '../'
+
+    volumes:
+      - ../:/tetris
+
+    command: serve tetris
+
+    expose:
+      - "3000"
+    ports:
+      - "3000:3000"
