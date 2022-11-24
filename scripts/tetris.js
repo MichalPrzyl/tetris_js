@@ -1,12 +1,12 @@
 // tetris.js
 globals = {
-    debug: true,
+    debug: false,
 }
 // colors 
 const figureColorOptions = [
     "#ff9400",
     "#ff0800",
-    "#00d9ce",
+    "#218f89",
     "#5a47ff",
     "#fc03ca",
     "#00cc0e",
@@ -14,7 +14,63 @@ const figureColorOptions = [
 
 // figures
 const figuresOptions = [
-    [ // t shape
+    [// square
+    {type: "square-shape"},
+    [
+        [0,0,0,0],
+        [0,1,1,0],
+        [0,1,1,0],
+        [0,0,0,0],
+    ],
+    [
+        [0,0,0,0],
+        [0,1,1,0],
+        [0,1,1,0],
+        [0,0,0,0],
+    ],
+    [
+        [0,0,0,0],
+        [0,1,1,0],
+        [0,1,1,0],
+        [0,0,0,0],
+    ],
+    [
+        [0,0,0,0],
+        [0,1,1,0],
+        [0,1,1,0],
+        [0,0,0,0],
+    ],
+    
+],
+        [// line
+        {type: "I-shape"},
+        [
+            [0,0,0,0],
+            [1,1,1,1],
+            [0,0,0,0],
+            [0,0,0,0],
+        ],
+        [
+            [0,0,1,0],
+            [0,0,1,0],
+            [0,0,1,0],
+            [0,0,1,0],
+        ],
+        [
+            [0,0,0,0],
+            [1,1,1,1],
+            [0,0,0,0],
+            [0,0,0,0],
+        ],
+        [
+            [0,0,1,0],
+            [0,0,1,0],
+            [0,0,1,0],
+            [0,0,1,0],
+        ],
+    ],
+    [
+     // t shape
         {type: "t-shape"},
         [
             [0,1,0],
@@ -35,7 +91,7 @@ const figuresOptions = [
             [0,1,0],
             [1,1,0],
             [0,1,0],
-        ],
+        ]
     ],
     [
         {type: "l-shape"},
@@ -129,8 +185,8 @@ const figuresOptions = [
             [0,1,0],
         ],
     ],
-   
 ]
+
 
 
 
@@ -151,8 +207,8 @@ const gridScale = 30;
 const gridWidth = 2;
 
 // colors
-const backgroundColor = 'gray';
-const gridColor = "#bfd3f2";
+const backgroundColor = '#bfbdbd';
+const gridColor = "#e5dfe6";
 const figureColor = "red";
 
 
@@ -204,12 +260,10 @@ const createNewFigure = (schemaPositionIndex=1) => {
     }
     if (canCreate){
         const spawnPosition = {xPos:5, yPos: 1}
-        // const randomColor = `#${Math.floor(Math.random()*16777215).toString(16)}`;
         const randomColorIndex = Math.floor(Math.random() * figureColorOptions.length);
         const randomColor = figureColorOptions[randomColorIndex];
         let item = figuresOptions[Math.floor(Math.random()*figuresOptions.length)];
         const figure = new Figure(spawnPosition, item, 1, color=randomColor);
-        console.log(figure)
         figures.push(figure);
         activeFigure = figure;
         createdCounter += 1;
@@ -232,7 +286,6 @@ const Start = () =>{
     spawnBottomBorderQuads();
 
     const item = figuresOptions[Math.floor(Math.random()*figuresOptions.length)];
-    
     // first figure
     const figure = new Figure(
         {xPos:5, yPos: 13},
@@ -265,7 +318,6 @@ const moveQuadsDown = (row) => {
     const quadsToMove = quads.filter(el => el.position.yPos <= row)
     for (let i = 0; i < quadsToMove.length; i++){
         quad = quads.find(el => el.position == quadsToMove[i].position);
-        console.log(quad)
         quad.position = {...quad.position, yPos: quad.position.yPos + 1};
     }
 }
@@ -358,10 +410,7 @@ const drawGrid = () => {
 }
 
 const drawFigure = (figure) => {
-    const randomColor = `#${Math.floor(Math.random()*16777215).toString(16)}`;
-    // ctx.fillStyle = figureColor;
     ctx.fillStyle = figure.color;
-    // ctx.fillStyle = randomColor;
     // find quads that belong to this figure
     const figureQuads = quads.filter(el => el.figure == figure)
     for (let i = 0; i < figureQuads.length; i++){
@@ -412,58 +461,71 @@ class Figure{
     createQuads(){
         const centerPoint = this.position;
         let quadPos;
+        // console.log(this.schema)
+        // [0,0,0,0]
+        // [0,1,0,0]
+        // [0,0,0,0]
+        // [0,0,0,0]
+        // if figure is I-shape or sqare-shape then do something else
+        if (this.schema[0].type == "I-shape"){
+            if(this.actualSchemaPositionIndex % 2 == 0){
+
+                for (let i = 0; i < 4; i++){
+                    quadPos = {xPos: centerPoint.xPos + 2 - i, yPos: centerPoint.yPos}
+                    const quad = new Quad(quadPos, this, this.color);
+                }   
+            }else{
+                for (let i = 0; i < 4; i++){
+                    quadPos = {xPos: centerPoint.xPos, yPos: centerPoint.yPos + 2 - i}
+                    const quad = new Quad(quadPos, this, this.color);
+                }  
+            }
+            return
+        }        
+        
         if (this.schema[this.actualSchemaPositionIndex][0][0] == 1){
             quadPos = {xPos: centerPoint.xPos - 1, yPos: centerPoint.yPos-1}
             const quad = new Quad(quadPos, this, this.color);
-            // this.quads.push(quad);
         }
 
         if (this.schema[this.actualSchemaPositionIndex][0][1] == 1){
             quadPos = {xPos: centerPoint.xPos, yPos: centerPoint.yPos-1}
             const quad = new Quad(quadPos, this, this.color);
-            // this.quads.push(quad);
         }
 
         if (this.schema[this.actualSchemaPositionIndex][0][2] == 1){
             quadPos = {xPos: centerPoint.xPos + 1, yPos: centerPoint.yPos-1}
             const quad = new Quad(quadPos, this, this.color);
-            // this.quads.push(quad);
         }
 
         if (this.schema[this.actualSchemaPositionIndex][1][0] == 1){
             quadPos = {xPos: centerPoint.xPos - 1, yPos: centerPoint.yPos}
             const quad = new Quad(quadPos, this, this.color);
-            // this.quads.push(quad);
         }
 
         if (this.schema[this.actualSchemaPositionIndex][1][1] == 1){
             quadPos = {xPos: centerPoint.xPos, yPos: centerPoint.yPos}
             const quad = new Quad(quadPos, this, this.color);
-            // this.quads.push(quad);
         }
 
         if (this.schema[this.actualSchemaPositionIndex][1][2] == 1){
             quadPos = {xPos: centerPoint.xPos + 1, yPos: centerPoint.yPos}
             const quad = new Quad(quadPos, this, this.color);
-            // this.quads.push(quad);
         }
 
         if (this.schema[this.actualSchemaPositionIndex][2][0] == 1){
             quadPos = {xPos: centerPoint.xPos - 1, yPos: centerPoint.yPos + 1}
             const quad = new Quad(quadPos, this, this.color);
-            // this.quads.push(quad);
         }
 
         if (this.schema[this.actualSchemaPositionIndex][2][1] == 1){
             quadPos = {xPos: centerPoint.xPos, yPos: centerPoint.yPos + 1}
             const quad = new Quad(quadPos, this, this.color);
-            // this.quads.push(quad);
         }
 
         if (this.schema[this.actualSchemaPositionIndex][2][2] == 1){
             quadPos = {xPos: centerPoint.xPos + 1, yPos: centerPoint.yPos + 1}
             const quad = new Quad(quadPos, this, this.color);
-            // this.quads.push(quad);
         }
         
     }
