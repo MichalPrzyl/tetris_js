@@ -2,6 +2,15 @@
 globals = {
     debug: true,
 }
+// colors 
+const figureColorOptions = [
+    "#ff9400",
+    "#ff0800",
+    "#00d9ce",
+    "#5a47ff",
+    "#fc03ca",
+    "#00cc0e",
+]
 
 // figures
 const figuresOptions = [
@@ -164,10 +173,11 @@ let canCreate = true;
 let endGameAfterLevel = 99999;
 
 const rotateFigure = () =>{
+    const activeFigureColor = activeFigure.color;
     ereaseFigure(activeFigure);
     // if index is 4 reset it to 0
     if (activeFigure.actualSchemaPositionIndex == 4 ){activeFigure.actualSchemaPositionIndex = 0 }
-    const figure = new Figure(activeFigure.position, activeFigure.schema, activeFigure.actualSchemaPositionIndex + 1);
+    const figure = new Figure(activeFigure.position, activeFigure.schema, activeFigure.actualSchemaPositionIndex + 1, activeFigureColor);
 
     activeFigure = figure;
     refreshScene();
@@ -194,9 +204,12 @@ const createNewFigure = (schemaPositionIndex=1) => {
     }
     if (canCreate){
         const spawnPosition = {xPos:5, yPos: 1}
-            
+        // const randomColor = `#${Math.floor(Math.random()*16777215).toString(16)}`;
+        const randomColorIndex = Math.floor(Math.random() * figureColorOptions.length);
+        const randomColor = figureColorOptions[randomColorIndex];
         let item = figuresOptions[Math.floor(Math.random()*figuresOptions.length)];
-        const figure = new Figure(spawnPosition, item);
+        const figure = new Figure(spawnPosition, item, 1, color=randomColor);
+        console.log(figure)
         figures.push(figure);
         activeFigure = figure;
         createdCounter += 1;
@@ -345,7 +358,10 @@ const drawGrid = () => {
 }
 
 const drawFigure = (figure) => {
-    ctx.fillStyle = figureColor;
+    const randomColor = `#${Math.floor(Math.random()*16777215).toString(16)}`;
+    // ctx.fillStyle = figureColor;
+    ctx.fillStyle = figure.color;
+    // ctx.fillStyle = randomColor;
     // find quads that belong to this figure
     const figureQuads = quads.filter(el => el.figure == figure)
     for (let i = 0; i < figureQuads.length; i++){
@@ -383,11 +399,10 @@ const gameOver = () =>{
 }
 
 class Figure{
-    constructor(position, schema, schemaPositionIndex=1){
+    constructor(position, schema, schemaPositionIndex=1, color=figureColor){
         this.position = position;
         this.schema = schema;
-        
-        // this.quadCount = countQuadsInFigure(schema);
+        this.color = color;
         this.quads = []
         this.actualSchemaPositionIndex = schemaPositionIndex;
         this.createQuads();
@@ -399,55 +414,55 @@ class Figure{
         let quadPos;
         if (this.schema[this.actualSchemaPositionIndex][0][0] == 1){
             quadPos = {xPos: centerPoint.xPos - 1, yPos: centerPoint.yPos-1}
-            const quad = new Quad(quadPos, this);
+            const quad = new Quad(quadPos, this, this.color);
             // this.quads.push(quad);
         }
 
         if (this.schema[this.actualSchemaPositionIndex][0][1] == 1){
             quadPos = {xPos: centerPoint.xPos, yPos: centerPoint.yPos-1}
-            const quad = new Quad(quadPos, this);
+            const quad = new Quad(quadPos, this, this.color);
             // this.quads.push(quad);
         }
 
         if (this.schema[this.actualSchemaPositionIndex][0][2] == 1){
             quadPos = {xPos: centerPoint.xPos + 1, yPos: centerPoint.yPos-1}
-            const quad = new Quad(quadPos, this);
+            const quad = new Quad(quadPos, this, this.color);
             // this.quads.push(quad);
         }
 
         if (this.schema[this.actualSchemaPositionIndex][1][0] == 1){
             quadPos = {xPos: centerPoint.xPos - 1, yPos: centerPoint.yPos}
-            const quad = new Quad(quadPos, this);
+            const quad = new Quad(quadPos, this, this.color);
             // this.quads.push(quad);
         }
 
         if (this.schema[this.actualSchemaPositionIndex][1][1] == 1){
             quadPos = {xPos: centerPoint.xPos, yPos: centerPoint.yPos}
-            const quad = new Quad(quadPos, this);
+            const quad = new Quad(quadPos, this, this.color);
             // this.quads.push(quad);
         }
 
         if (this.schema[this.actualSchemaPositionIndex][1][2] == 1){
             quadPos = {xPos: centerPoint.xPos + 1, yPos: centerPoint.yPos}
-            const quad = new Quad(quadPos, this);
+            const quad = new Quad(quadPos, this, this.color);
             // this.quads.push(quad);
         }
 
         if (this.schema[this.actualSchemaPositionIndex][2][0] == 1){
             quadPos = {xPos: centerPoint.xPos - 1, yPos: centerPoint.yPos + 1}
-            const quad = new Quad(quadPos, this);
+            const quad = new Quad(quadPos, this, this.color);
             // this.quads.push(quad);
         }
 
         if (this.schema[this.actualSchemaPositionIndex][2][1] == 1){
             quadPos = {xPos: centerPoint.xPos, yPos: centerPoint.yPos + 1}
-            const quad = new Quad(quadPos, this);
+            const quad = new Quad(quadPos, this, this.color);
             // this.quads.push(quad);
         }
 
         if (this.schema[this.actualSchemaPositionIndex][2][2] == 1){
             quadPos = {xPos: centerPoint.xPos + 1, yPos: centerPoint.yPos + 1}
-            const quad = new Quad(quadPos, this);
+            const quad = new Quad(quadPos, this, this.color);
             // this.quads.push(quad);
         }
         
@@ -456,9 +471,10 @@ class Figure{
 
 
 class Quad{
-    constructor(position, figure=null){
+    constructor(position, figure=null, color=figureColor){
         this.position = position;
         this.figure = figure;
+        this.color = figureColor;
         drawQuad(this.position);
         quads.push(this);
     }
